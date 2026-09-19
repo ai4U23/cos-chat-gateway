@@ -61,12 +61,17 @@ export default async function handler(req, res) {
       targetUrl = `${APPS_SCRIPT_URL}?zalo_secret=ai4UnowProcaffe`;
     }
 
-    // Forward to Apps Script asynchronously
+    console.log(`[inbound ${req.method}] ${pathname} target=${targetUrl}`);
+
+    // Forward to Apps Script with redirect: "manual" so it does NOT turn into a GET
     const forwardPromise = fetch(targetUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: rawBody
-    }).catch(err => console.error("Apps Script forward error:", err));
+      body: rawBody,
+      redirect: "manual"
+    })
+      .then(r => console.log(`[forward response] status=${r.status} location=${r.headers.get("location") ? "yes" : "no"}`))
+      .catch(err => console.error("[forward error]:", err));
 
     // For Meta & Telegram: return 200 OK instantly (<20ms) so they NEVER back off or retry!
     res.setHeader("Content-Type", "application/json");
