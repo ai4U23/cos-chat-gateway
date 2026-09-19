@@ -1,0 +1,11 @@
+{
+  "name": "cos-chat-gateway",
+  "version": "1.0.0",
+  "description": "Unified Vercel Serverless Chat Gateway for ai4U CoS (WhatsApp, Telegram, Zalo)",
+  "type": "module",
+  "scripts": {
+    "dev": "node api/index.js",
+    "build": "echo 'No build required for pure Node serverless'"
+  },
+  "dependencies": {}
+}
