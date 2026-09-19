@@ -81,7 +81,6 @@ export default async function handler(req, res) {
     res.setHeader("Content-Type", "application/json");
     return res.status(200).json({ status: "ok", forwarded: true });
   }
-  }
 
   return res.status(405).json({ error: "Method not allowed" });
 }
