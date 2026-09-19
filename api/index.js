@@ -63,23 +63,24 @@ export default async function handler(req, res) {
 
     console.log(`[inbound ${req.method}] ${pathname} target=${targetUrl}`);
 
-    // Forward to Apps Script with redirect: "manual" so it does NOT turn into a GET
-    const forwardPromise = fetch(targetUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: rawBody,
-      redirect: "manual"
-    })
-      .then(r => console.log(`[forward response] status=${r.status} location=${r.headers.get("location") ? "yes" : "no"}`))
-      .catch(err => console.error("[forward error]:", err));
+    // Forward to Apps Script with redirect: "manual" so it does NOT turn into a GET.
+    // MUST await before sending HTTP response so Vercel does not freeze the microVM.
+    try {
+      const resp = await fetch(targetUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: rawBody,
+        redirect: "manual"
+      });
+      console.log(`[forward response] status=${resp.status} location=${resp.headers.get("location") ? "yes" : "no"}`);
+    } catch (err) {
+      console.error("[forward error]:", err);
+    }
 
-    // For Meta & Telegram: return 200 OK instantly (<20ms) so they NEVER back off or retry!
+    // Return 200 OK to Meta / Telegram / Zalo after Apps Script has accepted the request
     res.setHeader("Content-Type", "application/json");
-    res.status(200).json({ status: "ok", forwarded: true });
-
-    // Ensure serverless function waits for the forward request before freezing
-    await forwardPromise;
-    return;
+    return res.status(200).json({ status: "ok", forwarded: true });
+  }
   }
 
   return res.status(405).json({ error: "Method not allowed" });
